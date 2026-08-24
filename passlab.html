@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Password Strength Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#1c1815; --panel:#262019; --panel2:#2f2820; --ink:#f2ead9; --muted:#a99a82;
+    --line:#3d3428; --brass:#d9a441; --brass-dim:#8a6d33;
+    --weak:#d3593f; --fair:#d99a41; --ok:#8fae52; --strong:#5bbf7a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Sora",system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:600px;margin:0 auto;padding:44px 20px 70px}
+  .mono{font-family:"IBM Plex Mono",monospace}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--brass);margin:0 0 8px}
+  h1{font-size:30px;font-weight:700;margin:0 0 8px;letter-spacing:-.5px}
+  .sub{color:var(--muted);margin:0 0 26px;font-size:15px;line-height:1.5}
+  .field{position:relative}
+  input[type=text]{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;color:var(--ink);font-family:"IBM Plex Mono",monospace;font-size:18px;padding:16px 54px 16px 16px}
+  input:focus{outline:none;border-color:var(--brass)}
+  .toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-family:"IBM Plex Mono",monospace;padding:8px}
+  .meter{display:flex;gap:6px;margin:18px 0 10px}
+  .seg{height:8px;flex:1;background:var(--panel2);border-radius:4px;transition:background .25s}
+  .verdict{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .vlabel{font-size:20px;font-weight:700}
+  .crack{font-family:"IBM Plex Mono",monospace;color:var(--muted);font-size:14px}
+  .crack b{color:var(--ink)}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px}
+  .stat{font-family:"IBM Plex Mono",monospace;font-size:12.5px;border:1px solid var(--line);border-radius:7px;padding:5px 10px;color:var(--muted)}
+  .stat b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .notes{margin-top:14px;display:grid;gap:8px}
+  .note{background:var(--panel);border-left:3px solid var(--brass-dim);border-radius:0 9px 9px 0;padding:10px 13px;font-size:14px;color:var(--muted)}
+  .note.bad{border-left-color:var(--weak)}
+  .note b{color:var(--ink)}
+  h2{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:36px 0 12px;border-top:1px solid var(--line);padding-top:22px}
+  ul.tips{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+  ul.tips li{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 15px;font-size:14.5px}
+  ul.tips b{color:var(--brass)}
+  .foot{color:var(--muted);font-size:12.5px;font-family:"IBM Plex Mono",monospace;margin-top:26px;border-top:1px solid var(--line);padding-top:16px;line-height:1.7}
+  code{background:var(--panel2);padding:1px 6px;border-radius:5px;font-family:"IBM Plex Mono",monospace;font-size:.92em}
+  .breachbtn{margin-top:16px;background:var(--panel2);color:var(--brass);border:1px solid var(--brass-dim);border-radius:10px;padding:11px 16px;font-family:"IBM Plex Mono",monospace;font-size:13px;cursor:pointer;font-weight:600}
+  .breachbtn:hover{border-color:var(--brass)}
+  .breachres{margin-top:12px;font-size:14px;line-height:1.5}
+  .breachres .hit{background:rgba(211,89,63,.14);border-left:3px solid var(--weak);border-radius:0 9px 9px 0;padding:12px 14px}
+  .breachres .clear{background:rgba(91,191,122,.12);border-left:3px solid var(--strong);border-radius:0 9px 9px 0;padding:12px 14px}
+  .breachres .info{color:var(--muted);font-size:12px;margin-top:8px;font-family:"IBM Plex Mono",monospace;line-height:1.6}
+  .breachres b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Password Strength Lab</p>
+  <h1>How long would your password survive?</h1>
+  <p class="sub">Type a password below and watch its real strength, measured in entropy, the same math attackers reason about. Everything runs in your browser; nothing you type is sent, stored, or logged.</p>
+  <div class="field">
+    <input type="text" id="pw" autocomplete="off" spellcheck="false" placeholder="Type a password to test..." oninput="score()">
+    <button class="toggle" id="tg" onclick="toggle()">HIDE</button>
+  </div>
+  <div id="out" style="display:none">
+    <div class="meter" id="meter"></div>
+    <div class="verdict"><span class="vlabel mono" id="vlabel"></span><span class="crack">cracks in <b id="crack"></b></span></div>
+    <div class="stats" id="stats"></div>
+    <div class="notes" id="notes"></div>
+    <button class="breachbtn" id="bbtn" onclick="breachCheck()">Check real breach databases</button>
+    <div id="breachres" class="breachres"></div>
+  </div>
+  <h2>Make one that lasts centuries</h2>
+  <ul class="tips">
+    <li><b>Length beats complexity.</b> A 5-word passphrase like <code>correct-battery-horse-staple</code> is far stronger, and easier to remember, than <code>P@ss1!</code>. Every extra character multiplies the guessing work.</li>
+    <li><b>One password per site.</b> Reuse is how one breach becomes ten (credential stuffing).</li>
+    <li><b>Use a password manager.</b> Let it generate and remember long random passwords; you memorize one master passphrase.</li>
+    <li><b>Turn on 2FA.</b> Even a stolen password fails without the second factor.</li>
+  </ul>
+  <h2>Why cracks in seconds?</h2>
+  <p class="sub" style="margin:0">Attackers do not type guesses, they run offline lists against <b>leaked password hashes</b> at billions of tries per second (the <b>hashing</b> idea from the crypto block). Common passwords are pre-computed, so they fall instantly. A <b>salt</b> and a slow hash like bcrypt make this expensive, but that is the site job; yours is length and uniqueness.</p>
+  <p class="foot">Runs 100% in your browser. The strength meter sends nothing. The breach check sends only a 5-character hash prefix (k-anonymity), never your password. Estimates assume a fast offline attack (~10 billion guesses/sec) and are rough guides. Never type a password you actually use into any page you do not fully trust.</p>
+</div>
+<script>
+  var COMMON = ["password","123456","123456789","qwerty","111111","12345678","abc123","password1","1234567","letmein","admin","welcome","monkey","iloveyou","dragon","sunshine","princess","football","000000","qwerty123","1q2w3e4r","654321","superman","1234","passw0rd","zaq12wsx","p@ssword","trustno1","nairobi","kenya","mpesa","admin123","qwertyuiop","asdfghjkl"];
+  var shown=true;
+  function toggle(){shown=!shown;var i=document.getElementById("pw");i.type=shown?"text":"password";document.getElementById("tg").textContent=shown?"HIDE":"SHOW";}
+  function poolSize(p){var s=0;if(/[a-z]/.test(p))s+=26;if(/[A-Z]/.test(p))s+=26;if(/[0-9]/.test(p))s+=10;if(/[^a-zA-Z0-9]/.test(p))s+=33;return s||1;}
+  function human(seconds){if(seconds<1)return "instantly";var u=[["second",1],["minute",60],["hour",3600],["day",86400],["year",31557600],["century",3155760000],["millennium",31557600000]];for(var i=u.length-1;i>=0;i--){if(seconds>=u[i][1]){var v=seconds/u[i][1];if(v>=1e6)return (v/1e6).toFixed(0)+"M "+u[i][0]+"s";return (v<10?v.toFixed(1):Math.round(v))+" "+u[i][0]+(Math.round(v)===1?"":"s");}}return "instantly";}
+  var LEVELS=[["Very weak","var(--weak)"],["Weak","var(--fair)"],["Fair","var(--fair)"],["Strong","var(--ok)"],["Very strong","var(--strong)"]];
+  function score(){
+    var p=document.getElementById("pw").value, out=document.getElementById("out");
+    if(!p){out.style.display="none";return;} out.style.display="block";
+    var pool=poolSize(p), bits=Math.round(p.length*Math.log2(pool));
+    var notes=[], penalty=0;
+    if(COMMON.indexOf(p.toLowerCase())>=0){notes.push([true,"One of the most common passwords in the world, in every attacker first list. Cracked <b>instantly</b>."]);penalty=100;}
+    if(/^(.)\1+$/.test(p))notes.push([true,"Just one character repeated, trivial to guess."]);
+    if(/^\d+$/.test(p))notes.push([true,"All digits, tiny search space, falls fast."]);
+    if(/(1234|2345|3456|qwer|asdf|abcd|password|admin)/i.test(p))notes.push([true,"Contains a common sequence or word attackers try first."]);
+    if(p.length<8)notes.push([true,"Under 8 characters, too short regardless of complexity."]);
+    var effBits = penalty?4:bits;
+    var lvl = effBits<28?0 : effBits<40?1 : effBits<60?2 : effBits<80?3 : 4;
+    if(penalty)lvl=0;
+    var guesses = Math.pow(2, Math.min(effBits,120))/2;
+    var secs = penalty?0:guesses/1e10;
+    var m=document.getElementById("meter"); m.innerHTML="";
+    for(var i=0;i<5;i++){var d=document.createElement("div");d.className="seg";d.style.background = i<=lvl ? LEVELS[lvl][1] : "var(--panel2)"; m.appendChild(d);}
+    var vl=document.getElementById("vlabel"); vl.textContent=LEVELS[lvl][0]; vl.style.color=LEVELS[lvl][1];
+    document.getElementById("crack").textContent=human(secs);
+    document.getElementById("stats").innerHTML="<span class=\"stat\">length <b>"+p.length+"</b></span><span class=\"stat\">entropy <b>"+bits+"</b> bits</span><span class=\"stat\">char pool <b>"+pool+"</b></span>";
+    var nb=document.getElementById("notes");
+    if(!notes.length && lvl>=3)notes.push([false,"Good length and variety, this resists offline cracking well. Keep it <b>unique</b> to one site."]);
+    if(!notes.length && lvl<3)notes.push([false,"Add length, aim for 16+ characters or a multi-word passphrase."]);
+    nb.innerHTML=notes.map(function(n){return "<div class=\"note"+(n[0]?" bad":"")+"\">"+n[1]+"</div>";}).join("");
+    document.getElementById("breachres").innerHTML="";
+  }
+  function kanon(prefix){return "<div class=\"info\">Privacy: only the hash prefix <b>"+prefix+"</b> (5 characters) was sent, never your password or its full hash. This is <b>k-anonymity</b>: the server returns every leaked hash starting with those 5 characters, and the actual match happens here on your device.</div>";}
+  async function breachCheck(){
+    var p=document.getElementById("pw").value, box=document.getElementById("breachres");
+    if(!p){box.innerHTML="";return;}
+    box.innerHTML="<div class=\"info\">Hashing locally and checking. Only the first 5 characters of the hash will leave your device.</div>";
+    try{
+      if(!window.crypto||!crypto.subtle) throw new Error("nocrypto");
+      var buf=await crypto.subtle.digest("SHA-1", new TextEncoder().encode(p));
+      var hash=Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,"0");}).join("").toUpperCase();
+      var prefix=hash.slice(0,5), suffix=hash.slice(5);
+      var res=await fetch("https://api.pwnedpasswords.com/range/"+prefix);
+      if(!res.ok) throw new Error("net");
+      var text=await res.text(), count=0;
+      text.split("\n").forEach(function(line){var pp=line.trim().split(":"); if(pp[0]===suffix) count=parseInt(pp[1],10);});
+      if(count>0){ box.innerHTML="<div class=\"hit\"><b>Found in breaches "+count.toLocaleString()+" times.</b> This exact password has leaked publicly and is on attacker lists. Never use it, and change it anywhere you have.</div>"+kanon(prefix); }
+      else { box.innerHTML="<div class=\"clear\"><b>Not found</b> in the breach database. It has not appeared in a known public leak. That alone does not make it strong, check the meter above too.</div>"+kanon(prefix); }
+    }catch(e){ box.innerHTML="<div class=\"info\">Could not run the breach check here. It needs an internet connection and a real browser tab (open the saved file). Your password never leaves your device either way.</div>"; }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Vuln Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#151519; --panel:#1e1e24; --panel2:#26262e; --ink:#ecedf1; --muted:#989aa4;
+    --line:#32333d; --accent:#6f8cff; --danger:#ff5a52; --safe:#3fce7c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Sora",system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px}
+  .mono{font-family:"JetBrains Mono",monospace}
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+  h1{font-size:30px;font-weight:700;margin:0 0 8px;letter-spacing:-.5px}
+  .sub{color:var(--muted);margin:0;font-size:15px;line-height:1.55;max-width:60ch}
+  .switchbar{display:flex;align-items:center;gap:16px;margin:26px 0 8px;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;flex-wrap:wrap}
+  .switch{width:74px;height:38px;border-radius:999px;background:var(--danger);position:relative;cursor:pointer;border:none;transition:background .25s;flex:none}
+  .switch::after{content:"";position:absolute;top:4px;left:4px;width:30px;height:30px;border-radius:50%;background:#fff;transition:transform .25s}
+  .switch.secure{background:var(--safe)}
+  .switch.secure::after{transform:translateX(36px)}
+  .modelabel{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:16px;letter-spacing:.04em}
+  .modelabel small{display:block;font-weight:400;font-size:12px;color:var(--muted);letter-spacing:0;margin-top:2px}
+  .demo{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin:16px 0}
+  .demo h3{margin:0 0 4px;font-size:18px}
+  .demo .tag{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+  label{display:block;font-size:13px;color:var(--muted);margin:12px 0 5px}
+  input,textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--ink);font-family:"JetBrains Mono",monospace;font-size:14px;padding:10px 12px}
+  input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .btn{background:var(--accent);color:#0a0f24;border:none;border-radius:9px;padding:9px 15px;font-weight:600;cursor:pointer;font-size:13.5px;font-family:"Sora",sans-serif}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  pre{background:#0f0f13;border:1px solid var(--line);border-radius:9px;padding:12px;overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.55;margin:12px 0 0;white-space:pre-wrap;word-break:break-word}
+  .hl{color:var(--danger);font-weight:700}
+  .ok{color:var(--safe);font-weight:700}
+  .result{margin-top:12px;border-radius:9px;padding:12px 14px;font-size:14px;line-height:1.5;display:none}
+  .result.show{display:block}
+  .result.breach{background:rgba(255,90,82,.13);border-left:3px solid var(--danger)}
+  .result.blocked{background:rgba(63,206,124,.12);border-left:3px solid var(--safe)}
+  .result b{color:var(--ink)}
+  .fixline{margin-top:12px;font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px}
+  .fixline b{color:var(--safe)}
+  .foot{color:var(--muted);font-size:12.5px;font-family:"JetBrains Mono",monospace;margin-top:30px;border-top:1px solid var(--line);padding-top:16px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Web Vuln Lab</p>
+  <h1>Same attack. One switch. Breach or blocked.</h1>
+  <p class="sub">The three web bugs behind most breaches - SQL injection, XSS, and broken access control - shown live. Flip the switch and run the same attack against vulnerable code, then against the fixed version. Everything is simulated in your browser; nothing real is attacked.</p>
+  <div class="switchbar">
+    <button class="switch" id="switch" onclick="flip()" aria-label="Toggle secure mode"></button>
+    <div class="modelabel" id="modelabel">VULNERABLE<small>Code is written the naive, insecure way</small></div>
+  </div>
+  <div class="demo">
+    <span class="tag">Attack 01 / SQL Injection</span>
+    <h3>Login bypass</h3>
+    <label>Username</label>
+    <input id="sqlu" value="admin' OR '1'='1" spellcheck="false">
+    <label>Password</label>
+    <input id="sqlp" value="anything" spellcheck="false">
+    <div class="btnrow"><button class="btn" onclick="runSql()">Attempt login</button></div>
+    <pre id="sqlq"></pre>
+    <div class="result" id="sqlr"></div>
+    <div class="fixline">Fix: <b>parameterized queries</b> - send the input as data on a separate channel, never glued into the SQL string.</div>
+  </div>
+  <div class="demo">
+    <span class="tag">Attack 02 / Cross-Site Scripting</span>
+    <h3>Malicious comment</h3>
+    <label>Post a comment (it will be shown to other visitors)</label>
+    <textarea id="xssi" rows="2" spellcheck="false">&lt;script&gt;stealCookie()&lt;/script&gt;</textarea>
+    <div class="btnrow"><button class="btn" onclick="runXss()">Post comment</button></div>
+    <div class="result" id="xssr"></div>
+    <div class="fixline">Fix: <b>output encoding</b> - render user input as text, so a script tag shows as characters, never runs. A <b>Content-Security-Policy</b> is the backstop.</div>
+  </div>
+  <div class="demo">
+    <span class="tag">Attack 03 / Broken Access Control (IDOR)</span>
+    <h3>Read someone else's invoice</h3>
+    <p class="sub" style="font-size:13.5px">You are logged in as <b class="mono">user #1001</b>. The app fetches invoices by ID. Try changing it to <b class="mono">1002</b> - a stranger's invoice.</p>
+    <label>GET /invoice?id=</label>
+    <input id="idor" value="1002" spellcheck="false">
+    <div class="btnrow"><button class="btn" onclick="runIdor()">View invoice</button></div>
+    <div class="result" id="idorr"></div>
+    <div class="fixline">Fix: on every request, <b>check the record belongs to the logged-in user</b> before returning it. Never trust an ID from the client.</div>
+  </div>
+  <p class="foot">Web Vuln Lab - a teaching simulation. No real database, page, or server is touched; the attacks are modelled in JavaScript to show the mechanism and its fix. Only test these techniques on systems you own or the deliberately-vulnerable labs built for practice.</p>
+</div>
+<script>
+  var secure = false;
+  function flip(){
+    secure = !secure;
+    document.getElementById("switch").classList.toggle("secure", secure);
+    var ml = document.getElementById("modelabel");
+    ml.innerHTML = secure ? "SECURED<small>Code is written the safe, defended way</small>" : "VULNERABLE<small>Code is written the naive, insecure way</small>";
+    ["sqlr","xssr","idorr"].forEach(function(id){document.getElementById(id).classList.remove("show");});
+    document.getElementById("sqlq").textContent="";
+  }
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function runSql(){
+    var u=document.getElementById("sqlu").value, p=document.getElementById("sqlp").value;
+    var q=document.getElementById("sqlq"), r=document.getElementById("sqlr"); r.className="result show";
+    if(!secure){
+      q.innerHTML = "SELECT * FROM users WHERE user='<span class=\"hl\">"+esc(u)+"</span>' AND pass='"+esc(p)+"'";
+      var injected = /'\s*or\s*'?1'?\s*=\s*'?1|--/i.test(u);
+      if(injected){ r.className="result show breach"; r.innerHTML="<b>Breach.</b> The <span class=\"mono hl\">' OR '1'='1</span> made the WHERE clause always true, so the query returned every row. You are logged in as admin - no password needed."; }
+      else { r.className="result show blocked"; r.innerHTML="Login failed - that username/password did not match."; }
+    } else {
+      q.innerHTML = "SELECT * FROM users WHERE user=<span class=\"ok\">?</span> AND pass=<span class=\"ok\">?</span>\n-- params: [ \""+esc(u)+"\", \""+esc(p)+"\" ]";
+      r.className="result show blocked";
+      r.innerHTML="<b>Blocked.</b> With a parameterized query the input is treated as <b>data</b>, so the database looks for a user literally named <span class=\"mono\">"+esc(u)+"</span> - which does not exist. The injection is inert.";
+    }
+  }
+  function runXss(){
+    var raw=document.getElementById("xssi").value, r=document.getElementById("xssr"); r.className="result show";
+    var dangerous = /<\s*script|onerror|onload|<\s*img|javascript:/i.test(raw);
+    if(!secure){
+      if(dangerous){ r.className="result show breach"; r.innerHTML="<b>Script executed.</b> The comment was dropped into the page as raw HTML, so every visitor's browser <b>runs your code</b>. A real payload would steal their session cookie and hand over their account.<br><br><span class=\"mono\" style=\"color:var(--danger)\">[popup] cookie: session=8f3a... exfiltrated to attacker.com</span>"; }
+      else { r.className="result show blocked"; r.innerHTML="Comment posted: \""+esc(raw)+"\"."; }
+    } else {
+      r.className="result show blocked";
+      r.innerHTML="<b>Neutralised.</b> The comment is output-encoded, so it shows up as harmless text, exactly as typed, and never runs:<br><br><span class=\"mono\">"+esc(raw)+"</span>";
+    }
+  }
+  var INVOICES = {"1001":{who:"you",amt:"KSh 4,500",item:"Your March invoice"},"1002":{who:"Grace Wanjiru",amt:"KSh 88,200",item:"Private invoice - salary advance"}};
+  function runIdor(){
+    var id=document.getElementById("idor").value.trim(), r=document.getElementById("idorr"); r.className="result show";
+    var inv=INVOICES[id];
+    if(!inv){ r.className="result show blocked"; r.innerHTML="No invoice with id "+esc(id)+"."; return; }
+    var mine = (id==="1001");
+    if(secure && !mine){ r.className="result show blocked"; r.innerHTML="<b>Access denied.</b> Invoice "+esc(id)+" belongs to another user. The server checked ownership against your session (user #1001) before returning anything."; }
+    else { if(mine){ r.className="result show blocked"; r.innerHTML="<b>Your invoice.</b> "+inv.item+" - "+inv.amt+"."; } else { r.className="result show breach"; r.innerHTML="<b>Data exposed.</b> You just read <b>"+inv.who+"'s</b> private record by changing one number:<br><span class=\"mono\">"+inv.item+" - "+inv.amt+"</span><br>The server never checked whether it belonged to you."; } }
+  }
+</script>
+</body>
+</html>

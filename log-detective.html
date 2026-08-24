@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log Detective</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#0b0d12; --panel:#13161d; --panel2:#1a1e27; --ink:#dadfe8; --muted:#7b8393;
+    --line:#242a35; --amber:#f0a83a; --crit:#ff5d5d; --warn:#f0a83a; --info:#5aa9ff; --ok:#49c88a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Sora",system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:38px 20px 80px}
+  .mono{font-family:"JetBrains Mono",monospace}
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--amber);margin:0 0 8px;display:flex;align-items:center;gap:9px}
+  .eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber);animation:pulse 2s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  @media (prefers-reduced-motion:reduce){.eyebrow::before{animation:none}}
+  h1{font-size:29px;font-weight:700;margin:0 0 8px;letter-spacing:-.5px}
+  .sub{color:var(--muted);margin:0 0 22px;font-size:15px;line-height:1.55;max-width:62ch}
+  textarea{width:100%;min-height:180px;background:#090b0f;border:1px solid var(--line);border-radius:11px;color:#c7d0dc;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:1.6;padding:14px;resize:vertical}
+  textarea:focus{outline:none;border-color:var(--amber)}
+  .btn{background:var(--amber);color:#1a1204;border:none;border-radius:10px;padding:11px 20px;font-weight:700;cursor:pointer;font-size:14px;font-family:"Sora",sans-serif;margin-top:12px}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);margin-left:8px}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:24px 0 8px}
+  @media(max-width:560px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 14px}
+  .tile .n{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+  .tile .l{font-size:11.5px;color:var(--muted);letter-spacing:.04em;margin-top:2px}
+  h2{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:32px 0 12px;border-top:1px solid var(--line);padding-top:20px}
+  .inc{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:11px;padding:16px 18px;margin:0 0 12px}
+  .inc.crit{border-left-color:var(--crit)}
+  .inc-head{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+  .sev{font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:700;letter-spacing:.08em;color:#120c02;padding:3px 8px;border-radius:4px;background:var(--warn)}
+  .sev.crit{background:var(--crit);color:#fff}
+  .inc h3{margin:0;font-size:16.5px;font-weight:600}
+  .attck{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--info);margin-left:auto}
+  .inc p{margin:9px 0 0;color:var(--muted);font-size:14px;line-height:1.55}
+  .ev{margin:10px 0 0;background:#090b0f;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#aeb7c5;overflow-x:auto;white-space:pre;line-height:1.6}
+  .action{margin-top:11px;font-size:13.5px;border-top:1px dashed var(--line);padding-top:10px}
+  .action b{color:var(--ok)}
+  .clean{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:18px;color:var(--ok);font-weight:600}
+  .foot{color:var(--muted);font-size:12.5px;font-family:"JetBrains Mono",monospace;margin-top:30px;border-top:1px solid var(--line);padding-top:16px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Log Detective</p>
+  <h1>Paste your logs. Find the attack.</h1>
+  <p class="sub">A SOC analyst in a box. Drop in login/access logs and it hunts for the patterns attackers leave behind - brute-force bursts, account takeovers, data exfiltration - maps each to MITRE ATT&amp;CK, and tells you what to do. Runs entirely in your browser.</p>
+  <textarea id="logs" spellcheck="false"></textarea>
+  <div>
+    <button class="btn" onclick="analyze()">Analyze logs</button>
+    <button class="btn ghost" onclick="loadSample()">Load sample</button>
+  </div>
+  <div id="out" style="display:none">
+    <div class="tiles" id="tiles"></div>
+    <h2>Detected incidents</h2>
+    <div id="incidents"></div>
+  </div>
+  <p class="foot">Log Detective - runs 100% in your browser, nothing uploaded. Reads simple whitespace logs: TIME EVENT USER IP RESULT. A teaching tool; real SOCs use a SIEM over millions of lines, but the detection logic is the same idea.</p>
+</div>
+<script>
+  var SAMPLE =
+`09:03:11 LOGIN abbe 41.90.22.14 SUCCESS
+09:07:45 LOGIN grace 41.90.55.20 SUCCESS
+10:22:03 ACCESS abbe 41.90.22.14 GET /dashboard
+20:55:40 LOGIN peter 102.68.11.9 FAIL
+20:56:12 LOGIN peter 102.68.11.9 SUCCESS
+21:14:02 LOGIN admin 185.220.101.7 FAIL
+21:14:03 LOGIN admin 185.220.101.7 FAIL
+21:14:03 LOGIN admin 185.220.101.7 FAIL
+21:14:04 LOGIN admin 185.220.101.7 FAIL
+21:14:05 LOGIN admin 185.220.101.7 FAIL
+21:14:05 LOGIN admin 185.220.101.7 FAIL
+21:14:06 LOGIN admin 185.220.101.7 SUCCESS
+21:14:31 ACCESS admin 185.220.101.7 GET /admin/all-accounts
+21:15:02 EXPORT admin 185.220.101.7 DOWNLOAD customers.csv 48000 rows
+23:10:00 ACCESS grace 41.90.55.20 GET /profile`;
+  function loadSample(){ document.getElementById("logs").value=SAMPLE; analyze(); }
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  var IPRE=/\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b/;
+  function analyze(){
+    var text=document.getElementById("logs").value.trim();
+    if(!text){document.getElementById("out").style.display="none";return;}
+    document.getElementById("out").style.display="block";
+    var lines=text.split("\n").map(function(l){return l.trim();}).filter(Boolean);
+    var events=lines.map(function(l){
+      var ipm=l.match(IPRE); var ip=ipm?ipm[1]:"?";
+      var result=/\bSUCCESS\b/i.test(l)?"SUCCESS":(/\bFAIL(ED)?\b/i.test(l)?"FAIL":"");
+      var type=/EXPORT|DOWNLOAD/i.test(l)?"EXPORT":(/LOGIN/i.test(l)?"LOGIN":"ACCESS");
+      return {raw:l, ip:ip, result:result, type:type};
+    });
+    var ips={}, fails=0;
+    events.forEach(function(e){ if(!ips[e.ip])ips[e.ip]={fail:0,success:0,ev:[]}; ips[e.ip].ev.push(e);
+      if(e.result==="FAIL"){ips[e.ip].fail++;fails++;} if(e.result==="SUCCESS")ips[e.ip].success++; });
+    var incidents=[];
+    Object.keys(ips).forEach(function(ip){
+      var d=ips[ip];
+      if(d.fail>=5){
+        var idxFail=d.ev.findIndex(function(e){return e.result==="FAIL";});
+        var tookOver=d.ev.some(function(e,i){return e.result==="SUCCESS" && i>idxFail;});
+        incidents.push({sev:"crit",title:"Brute-force attack from "+ip,attck:"T1110 Brute Force",
+          why:d.fail+" failed logins from a single IP in quick succession - a script guessing passwords, not a human.",
+          ev:d.ev.filter(function(e){return e.result;}).slice(0,8).map(function(e){return e.raw;}).join("\n"),
+          action:"Block or rate-limit "+ip+", force a password reset on the targeted account, and require MFA."});
+        if(tookOver){
+          incidents.push({sev:"crit",title:"Account takeover on "+ip,attck:"T1078 Valid Accounts",
+            why:"A successful login followed the failed burst - the guessing worked. The attacker now holds a valid session.",
+            ev:d.ev.filter(function(e){return e.type!=="LOGIN"||e.result;}).slice(-6).map(function(e){return e.raw;}).join("\n"),
+            action:"Isolate the account/session immediately, review every action it took, and preserve logs as evidence."});
+        }
+      }
+    });
+    events.filter(function(e){return e.type==="EXPORT";}).forEach(function(e){
+      var num=(e.raw.match(/\b(\d{3,})\b/)||[])[1];
+      incidents.push({sev:"crit",title:"Data exfiltration"+(num?" ("+Number(num).toLocaleString()+" records)":""),
+        attck:"T1567 Exfiltration Over Web Service",
+        why:"A bulk data export"+(num?" of "+Number(num).toLocaleString()+" rows":"")+" - the breach itself, data leaving the building.",
+        ev:e.raw, action:"CONTAIN: isolate the host from the network but do NOT wipe it - preserve evidence. Then notify per your breach-response policy."});
+    });
+    var uniqueIps=Object.keys(ips).length;
+    document.getElementById("tiles").innerHTML=
+      tile(lines.length,"log lines")+tile(uniqueIps,"unique IPs")+
+      tile(fails,"failed logins")+tile(incidents.length,"incidents", incidents.length?"var(--crit)":"var(--ok)");
+    var box=document.getElementById("incidents");
+    if(!incidents.length){ box.innerHTML="<div class=\"clean\">No known attack patterns detected. (Absence of alerts is not proof of safety - a stealthy attack can stay quiet.)</div>"; return; }
+    incidents.sort(function(a,b){return (b.sev==="crit")-(a.sev==="crit");});
+    box.innerHTML=incidents.map(function(i){
+      return "<div class=\"inc "+(i.sev==="crit"?"crit":"")+"\"><div class=\"inc-head\">"+
+        "<span class=\"sev "+(i.sev==="crit"?"crit":"")+"\">"+(i.sev==="crit"?"CRITICAL":"WARNING")+"</span>"+
+        "<h3>"+esc(i.title)+"</h3><span class=\"attck\">"+esc(i.attck)+"</span></div>"+
+        "<p>"+esc(i.why)+"</p><div class=\"ev\">"+esc(i.ev)+"</div>"+
+        "<div class=\"action\"><b>Response:</b> "+esc(i.action)+"</div></div>";
+    }).join("");
+  }
+  function tile(n,l,color){return "<div class=\"tile\"><div class=\"n\""+(color?" style=\"color:"+color+"\"":"")+">"+n+"</div><div class=\"l\">"+l+"</div></div>";}
+</script>
+</body>
+</html>

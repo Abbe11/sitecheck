@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scam Shield Kenya</title>
+<meta name="description" content="A free, independent guide to spotting and stopping M-PESA and AI voice-clone scams in Kenya.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap">
+<style>
+  :root{
+    --bg:#eceff5; --card:#ffffff; --ink:#141922; --muted:#586074; --line:#dbe1eb;
+    --blue:#2b5fd0; --blue-ink:#1c3f8f; --alert:#d8412f; --safe:#2f8f5b;
+    --soft:#e7edfb; --soft-green:#e4f2ea;
+    --radius:13px; --shadow:0 1px 2px rgba(20,25,34,.05);
+    --tap:44px; --space:clamp(16px,4vw,22px);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Sora",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  h1,h2,h3,h4{text-wrap:balance}
+  a{color:var(--blue);text-underline-offset:2px}
+  :focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:6px}
+  .serif{font-family:"Fraunces",Georgia,serif;font-weight:600;letter-spacing:-.01em}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+  .wrap{max-width:720px;margin:0 auto;padding:clamp(28px,6vw,44px) var(--space) 80px}
+  header .kicker{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--alert);font-weight:700;margin:0 0 10px}
+  header h1{font-size:clamp(28px,6.5vw,42px);line-height:1.05;margin:0 0 12px}
+  header .lede{color:var(--muted);margin:0;font-size:clamp(15px,4vw,16px);max-width:60ch}
+  nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0}
+  nav.toc a{font-size:13.5px;text-decoration:none;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:7px 14px;color:var(--ink);box-shadow:var(--shadow)}
+  nav.toc a:hover{border-color:var(--blue);color:var(--blue-ink)}
+  section{margin-top:clamp(30px,7vw,42px)}
+  section > h2.title{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(21px,5vw,24px);
+    margin:0 0 4px;scroll-margin-top:16px}
+  section > p.note{color:var(--muted);font-size:14px;margin:0 0 16px}
+  .rule{background:var(--ink);color:#fff;border-radius:16px;padding:clamp(20px,5vw,26px)}
+  .rule .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:#9db6ff}
+  .rule h2{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(19px,4.6vw,23px);margin:8px 0 0;line-height:1.24}
+  .rule p{margin:10px 0 0;color:#c7cfdd;font-size:14.5px}
+  .scam{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px;margin:11px 0;box-shadow:var(--shadow)}
+  .scam .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--alert)}
+  .scam h3{margin:5px 0 0;font-size:clamp(16px,4vw,17px)}
+  .scam .how{color:var(--muted);font-size:14px;margin:7px 0 0}
+  .scam .do{background:var(--soft-green);border-radius:9px;padding:11px 13px;margin-top:12px;font-size:14px}
+  .scam .do b{color:var(--safe)}
+  ol.rules{list-style:none;counter-reset:r;padding:0;margin:0;display:grid;gap:9px}
+  ol.rules li{counter-increment:r;display:grid;grid-template-columns:auto 1fr;gap:13px;align-items:start;
+    background:var(--card);border:1px solid var(--line);border-radius:11px;padding:13px 15px;font-size:14.5px;box-shadow:var(--shadow)}
+  ol.rules li::before{content:counter(r);font-family:"JetBrains Mono",monospace;font-weight:700;
+    color:#fff;background:var(--blue);width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:13px}
+  ol.rules b{color:var(--ink)}
+  .num{color:var(--blue-ink);font-family:"JetBrains Mono",monospace;font-weight:700;white-space:nowrap}
+  .safeword{background:var(--soft);border:1px solid #cdd9f5;border-radius:var(--radius);padding:clamp(18px,5vw,22px)}
+  .safeword output{display:block;font-family:"JetBrains Mono",monospace;font-weight:700;
+    font-size:clamp(20px,5.5vw,26px);color:var(--blue-ink);text-align:center;
+    padding:16px;background:#fff;border:1px dashed var(--blue);border-radius:10px;margin:0 0 14px}
+  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  button.btn{min-height:var(--tap);padding:0 18px;border-radius:10px;font:600 14px "Sora",sans-serif;cursor:pointer;border:1px solid transparent}
+  button.btn.primary{background:var(--blue);color:#fff}
+  button.btn.primary:hover{background:var(--blue-ink)}
+  button.btn.secondary{background:transparent;color:var(--ink);border-color:var(--line)}
+  button.btn.secondary:hover{border-color:var(--blue)}
+  .hint{color:var(--muted);font-size:13.5px;text-align:center;margin:14px 0 0}
+  footer{color:var(--muted);font-size:12.5px;margin-top:clamp(30px,7vw,40px);border-top:1px solid var(--line);padding-top:16px}
+  footer b{color:var(--ink)}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  @media print{
+    :root{--bg:#fff;--card:#fff;--line:#bbb;--soft:#f3f3f3;--soft-green:#eef6f0}
+    body{color:#000}
+    nav.toc,.controls,.rule p{display:none}
+    .scam,.rule,ol.rules li,.safeword{break-inside:avoid;box-shadow:none}
+    a{color:#000;text-decoration:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="kicker">Mobile-money &amp; AI scam defense · Kenya</p>
+    <h1 class="serif">Nobody legitimate needs your PIN, your code, or your money right now.</h1>
+    <p class="lede">Scammers use fake M-PESA messages, calls pretending to be Safaricom, and AI that clones a loved one's voice. They all rely on one trick: panicking you into acting before you can check. Here is how to stay safe — and share it with the people you love.</p>
+    <nav class="toc" aria-label="Sections">
+      <a href="#rule">The one rule</a>
+      <a href="#scams">Common scams</a>
+      <a href="#golden">Golden rules</a>
+      <a href="#safeword">Safe word</a>
+    </nav>
+  </header>
+  <main>
+    <section id="rule" aria-labelledby="rule-h">
+      <div class="rule">
+        <span class="k">The one rule that beats them all</span>
+        <h2 id="rule-h">Stop. Verify on your own, using a number you already trust. Never act on a single urgent call or SMS.</h2>
+        <p>A real relative, bank, or Safaricom will let you hang up and check. A scammer needs you to move <i>now</i>. That pressure is the scam — every time.</p>
+      </div>
+    </section>
+    <section id="scams" aria-labelledby="scams-h">
+      <h2 class="title" id="scams-h">The scams hitting Kenya right now</h2>
+      <p class="note">Each one, how it works, and what to do instead.</p>
+      <article class="scam">
+        <span class="tag">Fake reversal</span>
+        <h3>"Money was sent to you by mistake — please send it back."</h3>
+        <p class="how">You get an SMS that looks like an M-PESA "received" message, then a call begging you to reverse it. The SMS is <b>fake</b> — no money actually came in.</p>
+        <p class="do"><b>Do this:</b> Check your <i>real</i> balance yourself in the M-PESA app or menu — don't trust the SMS they point to. A genuine wrong-send is reversed by Safaricom, never by you sending cash to a stranger. Report the number to <span class="num">333</span>.</p>
+      </article>
+      <article class="scam">
+        <span class="tag">Fake Safaricom call</span>
+        <h3>"This is Safaricom customer care — press these codes / confirm your PIN."</h3>
+        <p class="how">A caller claims your line or M-PESA has a problem and tells you to enter USSD codes or share your PIN or OTP. Doing it blocks your line or sends your money to them.</p>
+        <p class="do"><b>Do this:</b> Safaricom's genuine calls come <b>only from 0722 000 000</b> — any other "Safaricom" number is a scam. They will <b>never</b> ask for your PIN or make you press codes. Hang up and call <span class="num">100</span> yourself to check.</p>
+      </article>
+      <article class="scam">
+        <span class="tag">AI voice clone</span>
+        <h3>"It's me — I'm in trouble, send money on M-PESA quickly."</h3>
+        <p class="how">AI can copy a relative's voice from a few seconds of audio (a voice note, a video online). The "child" or "friend" who calls in a panic may be a machine.</p>
+        <p class="do"><b>Do this:</b> Hang up and call the real person back on their normal number. Ask your family <b>safe word</b> (make one below), or a question only they would know. A fake cannot answer.</p>
+      </article>
+      <article class="scam">
+        <span class="tag">SIM swap</span>
+        <h3>Your line suddenly goes dead — and your M-PESA drains.</h3>
+        <p class="how">A fraudster tricks a shop into moving your number to their SIM, then resets your M-PESA and bank OTPs. The first sign is losing signal for no reason.</p>
+        <p class="do"><b>Do this:</b> If your line dies unexpectedly, treat it as an emergency — contact Safaricom immediately (<span class="num">100</span>) from another phone. Set a SIM PIN and an ID lock on your line so nobody can swap it without you.</p>
+      </article>
+      <article class="scam">
+        <span class="tag">Fake win</span>
+        <h3>"Congratulations! You've won a promotion — pay a small fee to claim."</h3>
+        <p class="how">A prize you never entered, with a "release" or "activation" fee. You send the fee; the prize never exists.</p>
+        <p class="do"><b>Do this:</b> You cannot win a promotion you never entered. Real prizes never need you to pay first. Ignore it and report the number to <span class="num">333</span>.</p>
+      </article>
+    </section>
+    <section id="golden" aria-labelledby="golden-h">
+      <h2 class="title" id="golden-h">Golden rules</h2>
+      <p class="note">From Safaricom's own fraud-awareness guidance.</p>
+      <ol class="rules">
+        <li><span><b>Never share your PIN or any OTP/code</b> — with anyone, ever. Safaricom and your bank will never ask.</span></li>
+        <li><span><b>Never press USSD codes</b> because a caller told you to — it can block your line or send your money.</span></li>
+        <li><span>Genuine Safaricom calls come <b>only from 0722 000 000</b>. Any other "Safaricom" caller is a scam.</span></li>
+        <li><span>Report scam numbers and fake SMS to <span class="num">333</span>. Call Safaricom yourself on <span class="num">100</span> to verify anything.</span></li>
+        <li><span>If you think you have been compromised, <b>change your PIN immediately</b> and contact Safaricom.</span></li>
+      </ol>
+    </section>
+    <section id="safeword" aria-labelledby="safeword-h">
+      <h2 class="title" id="safeword-h">Set your family safe word</h2>
+      <p class="note">Agree on a word <b>in person</b> — never by text. If a "relative" calls in a panic asking for money, ask for it. A voice clone will not know it.</p>
+      <div class="safeword">
+        <output id="safeword" aria-live="polite">amber-otter-38</output>
+        <div class="controls">
+          <button class="btn primary" type="button" id="genBtn">Generate another</button>
+          <button class="btn secondary" type="button" id="copyBtn">Copy</button>
+        </div>
+        <p class="hint" id="copyStatus" role="status" aria-live="polite">Choose one you will remember, share it face-to-face, and change it if it is ever used.</p>
+      </div>
+    </section>
+  </main>
+  <footer><b>Scam Shield Kenya</b> — an independent safety guide (not affiliated with Safaricom). Numbers and advice reflect Safaricom's public fraud-awareness guidance. Free to share — send it to a parent, a chama, or a small business. The best defense is a habit the scammer cannot beat: <b>stop, and verify on your own.</b></footer>
+</div>
+<script>
+  "use strict";
+  const ADJECTIVES = ["amber","silver","brave","golden","copper","hidden","crimson","olive","gentle","swift","violet","clever","royal","noble","quiet"];
+  const NOUNS = ["otter","falcon","harbor","cedar","lantern","river","compass","ember","meadow","summit","anchor","willow","beacon","acacia","zebra"];
+  const output = document.getElementById("safeword");
+  const status = document.getElementById("copyStatus");
+  const defaultHint = status.textContent;
+  const pick = (list) => list[Math.floor(Math.random() * list.length)];
+  function makeSafeWord(){ const number = 10 + Math.floor(Math.random() * 89); return pick(ADJECTIVES) + "-" + pick(NOUNS) + "-" + number; }
+  function generate(){ let next = makeSafeWord(); while (next === output.textContent) next = makeSafeWord(); output.textContent = next; status.textContent = defaultHint; }
+  async function copySafeWord(){
+    const text = output.textContent.trim(); let ok = false;
+    try {
+      if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); ok = true; }
+      else { const tmp = document.createElement("textarea"); tmp.value = text; tmp.setAttribute("readonly",""); tmp.style.position="absolute"; tmp.style.left="-9999px"; document.body.appendChild(tmp); tmp.select(); ok = document.execCommand("copy"); document.body.removeChild(tmp); }
+    } catch (_) { ok = false; }
+    status.textContent = ok ? "Copied - now share it face-to-face, never by text." : "Couldn't copy automatically - just write it down instead.";
+  }
+  document.getElementById("genBtn").addEventListener("click", generate);
+  document.getElementById("copyBtn").addEventListener("click", copySafeWord);
+</script>
+</body>
+</html>

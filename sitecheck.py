@@ -170,14 +170,14 @@ def build_report(host, findings):
       '</div></div></div>'
       '<div class="slabel">Needs attention</div>' + action_html +
       '<div class="slabel">Passing checks</div>' + passing_html +
-      '<footer>SiteCheck v2 &middot; reads public response headers only, like your browser does.<br>'
+      '<footer>SiteCheck &middot; reads public response headers only, like your browser does.<br>'
       'This grades technical header hygiene, not whether a site is trustworthy. '
       'Only run active security tools on sites you own or have permission to test.</footer>'
       '</div></body></html>')
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python sitecheck_v2.py <domain-or-url>"); sys.exit(1)
+        print("Usage: python sitecheck.py <domain-or-url>"); sys.exit(1)
     host, findings = check(sys.argv[1])
     with open(host.replace(":", "_") + "-report.html", "w", encoding="utf-8") as f:
         f.write(build_report(host, findings))
